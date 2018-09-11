@@ -11,12 +11,13 @@ namespace Overlord
     class Game
     {
         private GameWindow window;
-
+        private long timer = 60;
         private Logger logger;
 
         private ShaderCompiler shaderCompiler;
 
-        private int vertexArray;
+        private Vector2[] vertBuffer;
+        private int VBO;
 
         private List<Shader> shaders;
 
@@ -31,20 +32,22 @@ namespace Overlord
             LoggerStart();
             GetShaders();
 
+            shaderCompiler = new ShaderCompiler(shaders, ref logger);
+
+            StartShaders();
+
             window.CursorVisible = true;
+        }
 
-
-
-
-
-            shaderCompiler = new ShaderCompiler(shaders, logger);
-
+        private void StartShaders()
+        {
+            GL.UseProgram(shaderCompiler.Program);
         }
 
         private void GetShaders()
         {
-            shaders.Add(new Shader(ShaderType.FragmentShader, @"Shaders\frag.shader", "SimpleFragmentShader"));
-            shaders.Add(new Shader(ShaderType.VertexShader, @"Shaders\vert.shader", "SimpleVertexShader"));
+            shaders.Add(new Shader(ShaderType.FragmentShader, @"Shaders\simple.frag", "SimpleFragmentShader"));
+            shaders.Add(new Shader(ShaderType.VertexShader, @"Shaders\simple.vert", "SimpleVertexShader"));
         }
 
         private void LoggerStart()
@@ -70,6 +73,25 @@ namespace Overlord
             window.UpdateFrame += Window_updateFrame;
             window.KeyDown += Window_KeyDown;
             window.KeyUp += Window_KeyUp;
+
+            window.MouseDown += Window_MouseDown;
+            window.MouseUp += Window_MouseUp;
+
+        }
+
+
+        private void Window_MouseUp(object sender, OpenTK.Input.MouseButtonEventArgs e)
+        {
+#if DEBUG
+            Console.WriteLine(e.Button + " released");
+#endif
+        }
+
+        private void Window_MouseDown(object sender, OpenTK.Input.MouseButtonEventArgs e)
+        {
+#if DEBUG
+            Console.WriteLine(e.Button + " clicked");
+#endif
         }
 
         private void Window_KeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
@@ -100,6 +122,26 @@ namespace Overlord
         private void Window_load(object sender, EventArgs e)
         {
             window.Closed += Window_Closed;
+
+            vertBuffer = new Vector2[5]
+            {
+                new Vector2(0, 0.5f),
+                new Vector2(-0.25f, 0),
+                new Vector2(0.6f, 0.1f),
+                new Vector2(-0.25f, -0.5f),
+                new Vector2(0, 0.5f)
+            };
+
+            //Buffer
+            VertexBuffer();
+        }
+
+        private void VertexBuffer()
+        {
+            VBO = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+            GL.BufferData<Vector2>(BufferTarget.ArrayBuffer, (IntPtr)(Vector2.SizeInBytes * vertBuffer.Length), vertBuffer, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -109,7 +151,13 @@ namespace Overlord
 
         private void Window_updateFrame(object sender, FrameEventArgs e)
         {
-
+            timer++;
+            //Update Window Title every second
+            if (timer % 60 == 0)
+            {
+                window.Title = $"Overlord - (Vsync: {window.VSync}) FPS: {1f / e.Time:0}";
+                timer = 0;
+            }
         }
 
         private void Window_RenderFrame(object sender, FrameEventArgs e)
@@ -123,12 +171,16 @@ namespace Overlord
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            window.Title = $"Overlord - (Vsync: {window.VSync}) FPS: {1f / e.Time:0}";
-
             GL.UseProgram(shaderCompiler.Program);
-            GL.DrawArrays(PrimitiveType.Points, 0, 1);
+
+            GL.EnableClientState(ArrayCap.VertexArray);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
+            GL.VertexPointer(2, VertexPointerType.Float, Vector2.SizeInBytes, 0);
+
+            GL.DrawArrays(PrimitiveType.LineStrip, 0, vertBuffer.Length);
             GL.PointSize(10);
 
+            GL.Flush();
             window.SwapBuffers();
 
         }

@@ -10,7 +10,7 @@ namespace Overlord.Engine
         public int Program { get; set; }
         private List<int> compiledShaders;
 
-        public ShaderCompiler(List<Shader> shaders, Logger logger)
+        public ShaderCompiler(List<Shader> shaders, ref Logger logger)
         {
             int shaderID;
             string shaderPath;
@@ -37,7 +37,7 @@ namespace Overlord.Engine
                     GL.CompileShader(shaderID);
                     info = GL.GetShaderInfoLog(shaderID);
                     if (!string.IsNullOrWhiteSpace(info))
-                        logger.Log("SHADER_ERROR", "Compiling " + shader.Type + " had an error: " + info);
+                        logger.Log("SHADER_ERROR", "Compiling " + shader.Type + " had an error:\r\n" + info);
                     compiledShaders.Add(shaderID);
                     logger.Log("SHADER", "Compiled " + shader.Name);
                 }

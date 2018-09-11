@@ -13,7 +13,7 @@
     <RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
     <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
-    <DefineConstants>DEBUG;TRACE;NETCOREAPP2_0</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETCOREAPP2_0</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,7 +25,43 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Shaders\simple.frag" />
+    <None Remove="Shaders\simple.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="Shaders\simple.frag" />
+    <ApplicationDefinition Include="Shaders\simple.vert" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Shaders\simple.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\simple.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OpenTK.NETCore" Version="1.1.2749.6433" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Update="Shaders\simple.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </ApplicationDefinition>
+    <ApplicationDefinition Update="Shaders\simple.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="copy $(ProjectDir)Shaders\* $(ProjectDir)$(OutDir)Shaders\" />
+  </Target>
 
 </Project>

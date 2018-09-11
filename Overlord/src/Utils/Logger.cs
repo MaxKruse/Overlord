@@ -24,7 +24,7 @@ namespace Overlord.Utils
         }
 
 
-        public void Log(string prefix, string msg)
+        public void Log(string prefix = "DEBUG", string msg = "")
         {
             formated = "[" + prefix + "] => " + msg + "\r\n";
             System.Console.Write(formated);
